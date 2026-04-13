@@ -9,8 +9,8 @@ import base64
 import os
 from pathlib import Path
 
-# Import your magic_finger code
-from magic_finger import (
+# Import your texture_recognition code
+from texture_recognition import (
     TextureRecognizer,
     MagicFingerConfig,
     extract_features
@@ -24,12 +24,12 @@ CFG = MagicFingerConfig()
 recognizer = TextureRecognizer(CFG)
 
 # Load pre-trained model
-MODEL_PATH = "magic_finger_model.pkl"
+MODEL_PATH = "TV_model.pkl"
 if os.path.exists(MODEL_PATH):
     recognizer.load(MODEL_PATH)
     print(f"[server] Model loaded: {recognizer.label_names}")
 else:
-    print("[server] WARNING: No model found! Train first with: python magic_finger.py --mode train")
+    print("[server] WARNING: No model found! Train first with: python texture_recognition.py --mode train")
 
 @app.route('/')
 def index():
@@ -115,7 +115,7 @@ def model_info():
         return jsonify({
             'loaded': False,
             'classes': [],
-            'message': 'No model loaded. Train with: python magic_finger.py --mode train'
+            'message': 'No model loaded. Train with: python texture_recognition.py --mode train'
         })
     
     return jsonify({
@@ -128,7 +128,7 @@ def model_info():
 
 if __name__ == '__main__':
     print("\n" + "="*60)
-    print("Magic Finger - Texture Recognition Server")
+    print("Texture Recognition Server")
     print("="*60)
     print(f"Model: {'✓ Loaded' if recognizer.model else '✗ Not found'}")
     if recognizer.model:
