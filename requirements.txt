@@ -1,0 +1,26 @@
+blinker==1.9.0
+click==8.3.2
+colorama==0.4.6
+contourpy==1.3.3
+cycler==0.12.1
+Flask==3.1.3
+flask-cors==6.0.2
+fonttools==4.62.1
+itsdangerous==2.2.0
+Jinja2==3.1.6
+joblib @ file:///home/conda/feedstock_root/build_artifacts/joblib_1765794027227/work
+kiwisolver==1.5.0
+MarkupSafe==3.0.3
+matplotlib==3.10.8
+numpy @ file:///D:/bld/bld/rattler-build_numpy_1773839131/work/dist/numpy-2.4.3-cp311-cp311-win_amd64.whl#sha256=ab655e7b39e4f9e1dc0410b9ee943cfd1b8285ef0776679e3c6096c89e5a2bba
+opencv-python==4.13.0
+opencv-python-headless==4.13.0
+packaging==26.0
+pillow==12.2.0
+pyparsing==3.3.2
+python-dateutil==2.9.0.post0
+scikit-learn @ file:///D:/bld/bld/rattler-build_scikit-learn_1765801251/work/dist/scikit_learn-1.8.0-cp311-cp311-win_amd64.whl#sha256=6b709d3d1e68d89c77b77f0fb7aa31e6f68e5148d615ecd56f94da3e1262056b
+scipy @ file:///C:/bld/scipy-split_1771879216239/work/dist/scipy-1.17.1-cp311-cp311-win_amd64.whl#sha256=058050e81ee500962186d6d4638e7c43e114103164f21e4456e3182aa87b600b
+six==1.17.0
+threadpoolctl @ file:///home/conda/feedstock_root/build_artifacts/threadpoolctl_1741878222898/work
+Werkzeug==3.1.8
