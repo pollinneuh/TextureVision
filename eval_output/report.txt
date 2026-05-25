@@ -1,0 +1,17 @@
+Overall accuracy: 0.9132
+
+               precision    recall  f1-score   support
+
+     CONCRETE       0.98      0.95      0.97       840
+       COTTON       0.80      0.93      0.86       819
+COTTON_FABRIC       0.88      0.93      0.91       840
+        METAL       0.96      0.99      0.97       840
+        PAPER       0.91      0.76      0.83       847
+      PLASTIC       0.94      0.96      0.95       840
+    PORCELAIN       0.95      0.89      0.92       812
+         SOIL       0.95      0.98      0.97       707
+   WOOD_CLEAR       0.87      0.83      0.85       840
+
+     accuracy                           0.91      7385
+    macro avg       0.92      0.91      0.91      7385
+ weighted avg       0.92      0.91      0.91      7385

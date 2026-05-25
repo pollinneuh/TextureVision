@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TextureVision — CNN</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400,700&family=Special+Elite&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier Prime', 'Courier New', monospace; background: #0a0a0a; color: #e0e0e0; height: 100vh; overflow: hidden; }
+
+        .header { background: #1a1a1a; color: #fff; padding: 16px 30px; border-bottom: 3px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 22px; font-family: 'Special Elite', monospace; letter-spacing: 2px; text-transform: uppercase; }
+        .header h1::before { content: '> '; color: #00b4d8; }
+        .header-badge { padding: 5px 12px; font-size: 10px; font-weight: 700; border: 2px solid #00b4d8; color: #00b4d8; text-transform: uppercase; letter-spacing: 1px; }
+
+        .main-container { display: flex; height: calc(100vh - 71px); }
+        .panel { background: #1a1a1a; border: 2px solid #333; display: flex; flex-direction: column; flex: 1; }
+        .left-panel { border-right: 2px solid #333; max-width: 480px; }
+        .panel-header { background: #0a0a0a; padding: 13px 20px; border-bottom: 2px solid #333; font-weight: 700; color: #fff; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; font-size: 12px; }
+        .panel-content { flex: 1; overflow-y: auto; padding: 18px; background: #0a0a0a; }
+        .panel-content::-webkit-scrollbar { width: 8px; }
+        .panel-content::-webkit-scrollbar-track { background: #0a0a0a; }
+        .panel-content::-webkit-scrollbar-thumb { background: #333; }
+
+        /* Info bar */
+        .model-bar { background: #111; border: 1px solid #00b4d8; padding: 10px 14px; margin-bottom: 14px; font-size: 11px; color: #90e0ef; display: flex; justify-content: space-between; align-items: center; }
+        .model-bar strong { color: #fff; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #2dc673; display: inline-block; margin-right: 6px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* Upload */
+        .upload-area { border: 3px dashed #333; padding: 36px 20px; text-align: center; cursor: pointer; background: #111; margin-bottom: 14px; transition: all 0.2s; }
+        .upload-area:hover, .upload-area.dragover { border-color: #00b4d8; background: #0d1b2a; }
+        .upload-icon { font-size: 36px; margin-bottom: 10px; color: #00b4d8; }
+        .upload-text { color: #888; font-size: 13px; }
+        .upload-text strong { color: #fff; }
+
+        /* Camera button */
+        .camera-btn-row { display: flex; gap: 10px; margin-bottom: 14px; }
+
+        /* Image grid */
+        .image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-bottom: 14px; }
+        .image-item { position: relative; border: 2px solid #333; background: #000; }
+        .image-item:hover { border-color: #555; }
+        .image-item img { width: 100%; height: 110px; object-fit: cover; display: block; filter: grayscale(30%); }
+        .image-item .remove-btn { position: absolute; top: 4px; right: 4px; background: #000; color: #fff; border: 1px solid #fff; width: 20px; height: 20px; cursor: pointer; font-size: 12px; display: none; align-items: center; justify-content: center; }
+        .image-item:hover .remove-btn { display: flex; }
+        .image-item .remove-btn:hover { background: #fff; color: #000; }
+
+        /* Buttons */
+        .btn { background: #fff; color: #000; border: 3px solid #000; padding: 10px 20px; cursor: pointer; font-size: 12px; font-weight: 700; font-family: 'Courier Prime', monospace; text-transform: uppercase; transition: all 0.15s; box-shadow: 3px 3px 0 #000; }
+        .btn:hover:not(:disabled) { background: #000; color: #fff; transform: translate(1px, 1px); box-shadow: 2px 2px 0 #000; }
+        .btn:disabled { background: #222; color: #555; border-color: #333; cursor: not-allowed; box-shadow: none; }
+        .btn-sm { padding: 7px 14px; font-size: 11px; box-shadow: 2px 2px 0 #000; }
+        .btn-outline { background: transparent; color: #00b4d8; border: 2px solid #00b4d8; box-shadow: 2px 2px 0 #00b4d8; }
+        .btn-outline:hover:not(:disabled) { background: #00b4d8; color: #000; box-shadow: 1px 1px 0 #00b4d8; }
+        .btn-ghost { background: #1a1a1a; color: #aaa; border: 2px solid #444; box-shadow: none; }
+        .btn-ghost:hover:not(:disabled) { background: #222; color: #fff; box-shadow: none; transform: none; }
+
+        .process-row { display: flex; gap: 10px; }
+
+        /* Results */
+        .result-item { background: #111; border: 2px solid #222; padding: 16px; margin-bottom: 16px; }
+        .result-header { display: flex; gap: 16px; margin-bottom: 12px; }
+        .result-image { width: 90px; height: 90px; border: 2px solid #333; object-fit: cover; filter: grayscale(30%) contrast(1.1); flex-shrink: 0; }
+        .result-info { flex: 1; min-width: 0; }
+        .result-info h3 { font-family: 'Special Elite', monospace; margin-bottom: 10px; color: #fff; text-transform: uppercase; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .texture-row { margin-bottom: 10px; }
+        .texture-label { font-size: 11px; font-weight: 700; color: #fff; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px; display: flex; justify-content: space-between; }
+        .texture-label .rank { color: #555; font-size: 10px; }
+        .confidence-container { display: flex; align-items: center; gap: 8px; }
+        .confidence-bar { flex: 1; background: #0a0a0a; border: 1px solid #333; height: 16px; position: relative; }
+        .confidence-fill { height: 100%; transition: width 0.5s ease; }
+        .fill-1 { background: repeating-linear-gradient(45deg, #00b4d8, #00b4d8 6px, #0096b5 6px, #0096b5 12px); }
+        .fill-2 { background: repeating-linear-gradient(45deg, #444, #444 6px, #333 6px, #333 12px); }
+        .fill-3 { background: repeating-linear-gradient(45deg, #2a2a2a, #2a2a2a 6px, #222 6px, #222 12px); }
+        .confidence-value { font-size: 11px; font-weight: bold; color: #fff; min-width: 38px; text-align: right; }
+
+        /* Live snapshot banner */
+        .live-banner { background: #0d1b2a; border: 2px solid #00b4d8; padding: 6px 12px; margin-bottom: 10px; font-size: 11px; color: #90e0ef; display: flex; align-items: center; gap: 8px; }
+
+        /* Spinner */
+        .spinner { border: 3px solid #222; border-top: 3px solid #00b4d8; width: 36px; height: 36px; animation: spin 0.8s linear infinite; margin: 60px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Empty / error state */
+        .empty-state { text-align: center; color: #555; padding: 80px 20px; }
+        .empty-state-icon { font-size: 56px; margin-bottom: 16px; opacity: 0.25; }
+        .empty-state h3 { font-family: 'Special Elite', monospace; color: #777; text-transform: uppercase; margin-bottom: 8px; }
+        .empty-state code { font-size: 12px; color: #00b4d8; }
+
+        .status-badge { padding: 5px 10px; font-size: 10px; font-weight: 700; border: 2px solid; text-transform: uppercase; }
+        .status-processing { background: #0d1b2a; color: #00b4d8; border-color: #00b4d8; }
+        .status-complete { background: #0d2a1a; color: #2dc673; border-color: #2dc673; }
+        .status-error { background: #2a0d0d; color: #e63b3b; border-color: #e63b3b; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>TextureVision — CNN</h1>
+    <span class="header-badge">MobileNetV3-Small</span>
+</div>
+
+<div class="main-container">
+
+    <!-- LEFT: inputs -->
+    <div class="panel left-panel">
+        <div class="panel-header">
+            <span>█ INPUT</span>
+            <button class="btn btn-ghost btn-sm" onclick="clearAll()">Clear</button>
+        </div>
+        <div class="panel-content">
+
+            <div class="model-bar" id="modelBar">
+                <span><span class="dot"></span><strong>CNN</strong> loading…</span>
+                <span id="classCount">—</span>
+            </div>
+
+            <!-- Upload zone -->
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">▲</div>
+                <div class="upload-text"><strong>CLICK TO UPLOAD</strong> or drag &amp; drop<br><small>PNG · JPG</small></div>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" multiple style="display:none;">
+
+            <!-- Camera -->
+            <div class="camera-btn-row">
+                <button class="btn btn-outline btn-sm" style="flex:1;" onclick="captureCamera()">
+                    ◉ GRAB FROM ENDOSCOPE
+                </button>
+            </div>
+
+            <!-- Thumbnails -->
+            <div class="image-grid" id="imageGrid"></div>
+
+            <!-- Analyze -->
+            <div class="process-row">
+                <button class="btn" id="processBtn" style="flex:1;" onclick="processImages()" disabled>
+                    ▶ ANALYZE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: results -->
+    <div class="panel">
+        <div class="panel-header">
+            <span>█ RESULTS</span>
+            <span class="status-badge" id="statusBadge" style="display:none;"></span>
+        </div>
+        <div class="panel-content" id="resultsPanel">
+            <div class="empty-state">
+                <div class="empty-state-icon">◆</div>
+                <h3>No results yet</h3>
+                <p>Upload images or grab a live frame, then click Analyze</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let uploadedImages = [];
+    const uploadArea  = document.getElementById('uploadArea');
+    const fileInput   = document.getElementById('fileInput');
+
+    // ── Upload handling ──────────────────────────────────────────────────────
+    uploadArea.addEventListener('click',     () => fileInput.click());
+    uploadArea.addEventListener('dragover',  e  => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragleave', ()  => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', e => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+    function handleFiles(files) {
+        Array.from(files).forEach(file => {
+            if (!file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                uploadedImages.push({ id: Date.now() + Math.random(), src: e.target.result, name: file.name });
+                renderGrid();
+                updateBtn();
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function renderGrid() {
+        document.getElementById('imageGrid').innerHTML = uploadedImages.map(img => `
+            <div class="image-item">
+                <img src="${img.src}" alt="${img.name}">
+                <button class="remove-btn" onclick="removeImage(${img.id})">×</button>
+            </div>
+        `).join('');
+    }
+
+    function removeImage(id) {
+        uploadedImages = uploadedImages.filter(i => i.id !== id);
+        renderGrid();
+        updateBtn();
+    }
+
+    function clearAll() {
+        uploadedImages = [];
+        renderGrid();
+        updateBtn();
+        showEmpty();
+    }
+
+    function updateBtn() {
+        document.getElementById('processBtn').disabled = uploadedImages.length === 0;
+    }
+
+    function showEmpty() {
+        document.getElementById('resultsPanel').innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">◆</div>
+                <h3>No results yet</h3>
+                <p>Upload images or grab a live frame, then click Analyze</p>
+            </div>`;
+        document.getElementById('statusBadge').style.display = 'none';
+    }
+
+    // ── Live camera grab ─────────────────────────────────────────────────────
+    async function captureCamera() {
+        const badge = document.getElementById('statusBadge');
+        badge.textContent = 'GRABBING…';
+        badge.className = 'status-badge status-processing';
+        badge.style.display = 'inline-block';
+
+        try {
+            const res  = await fetch('http://localhost:5000/camera');
+            const data = await res.json();
+
+            if (data.error) {
+                setBadge('ERROR', 'error');
+                return;
+            }
+
+            // Add to images list and show result immediately
+            const id = Date.now();
+            uploadedImages.push({ id, src: data.src, name: 'endoscope_live.jpg' });
+            renderGrid();
+            updateBtn();
+
+            const panel = document.getElementById('resultsPanel');
+            panel.innerHTML = `
+                <div class="live-banner">◉ LIVE FRAME — endoscope camera</div>
+                ${renderResult({ name: 'endoscope_live.jpg', src: data.src, textures: data.textures })}
+            `;
+            setBadge('LIVE', 'complete');
+
+        } catch (e) {
+            document.getElementById('resultsPanel').innerHTML = connectionError();
+            badge.style.display = 'none';
+        }
+    }
+
+    // ── Batch analyze ────────────────────────────────────────────────────────
+    async function processImages() {
+        const panel = document.getElementById('resultsPanel');
+        panel.innerHTML = '<div class="spinner"></div>';
+        setBadge('PROCESSING…', 'processing');
+
+        try {
+            const res  = await fetch('http://localhost:5000/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ images: uploadedImages }),
+            });
+            const data = await res.json();
+
+            if (data.error) {
+                panel.innerHTML = `<div class="empty-state"><h3>Error</h3><p>${data.error}</p></div>`;
+                setBadge('ERROR', 'error');
+                return;
+            }
+
+            panel.innerHTML = data.results.map(r => renderResult(r)).join('');
+            setBadge('COMPLETE', 'complete');
+
+        } catch (e) {
+            panel.innerHTML = connectionError();
+            document.getElementById('statusBadge').style.display = 'none';
+        }
+    }
+
+    // ── Render helpers ───────────────────────────────────────────────────────
+    function renderResult(r) {
+        const textures = r.textures || [];
+        const fillClass = ['fill-1', 'fill-2', 'fill-3'];
+        return `
+            <div class="result-item">
+                <div class="result-header">
+                    <img src="${r.src}" alt="${r.name}" class="result-image">
+                    <div class="result-info">
+                        <h3>${r.name}</h3>
+                        ${textures.map((t, i) => `
+                            <div class="texture-row">
+                                <div class="texture-label">
+                                    <span>${t.name}</span>
+                                    <span class="rank">#${i + 1}</span>
+                                </div>
+                                <div class="confidence-container">
+                                    <div class="confidence-bar">
+                                        <div class="confidence-fill ${fillClass[i] || 'fill-3'}" style="width:${t.confidence}%"></div>
+                                    </div>
+                                    <div class="confidence-value">${t.confidence}%</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    function setBadge(text, type) {
+        const b = document.getElementById('statusBadge');
+        b.textContent = text;
+        b.className = `status-badge status-${type}`;
+        b.style.display = 'inline-block';
+    }
+
+    function connectionError() {
+        return `
+            <div class="empty-state">
+                <h3>Connection error</h3>
+                <p>Make sure the server is running:</p>
+                <br><code>python server_cnn.py</code>
+            </div>`;
+    }
+
+    // ── Model info on load ───────────────────────────────────────────────────
+    window.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const res  = await fetch('http://localhost:5000/model-info');
+            const info = await res.json();
+            const bar  = document.getElementById('modelBar');
+            if (info.loaded) {
+                bar.innerHTML = `<span><span class="dot"></span><strong>${info.algorithm}</strong> · ${info.n_classes} classes</span><span id="classCount">${info.classes.join(' · ')}</span>`;
+            } else {
+                bar.innerHTML = `<span style="color:#e63b3b">✗ No model loaded</span><span>Run 04_train_cnn.py first</span>`;
+            }
+        } catch (e) {
+            document.getElementById('modelBar').innerHTML = `<span style="color:#888">⚠ Server offline</span>`;
+        }
+    });
+</script>
+</body>
+</html>
